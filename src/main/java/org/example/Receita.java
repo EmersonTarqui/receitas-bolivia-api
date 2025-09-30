@@ -27,12 +27,12 @@ public class Receita extends PanacheEntity {
     @Enumerated(EnumType.STRING)
     public Dificuldade dificuldade;
 
-    @ElementCollection
+    @ElementCollection //relacao tabela a parte pelo id
     public List<String> modoPreparo;
 
 
-    //Uma receita tem um custo
-    @OneToOne(cascade = CascadeType.ALL)//cascade = Se a receita for apagada, o CustoEstimado vai embora junto
+    //Uma receita tem uma informacaoNutricional
+    @OneToOne(cascade = CascadeType.ALL)//cascade = Se a receita for apagada, a InformacaoNutricional ligada vai embora junto
     @JoinColumn(name = "info_nutricional_id")
     public InformacaoNutricional informacaoNutricional;
 
