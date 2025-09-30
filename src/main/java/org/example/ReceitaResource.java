@@ -68,7 +68,6 @@ public class ReceitaResource {
     @GET
     @Path("/search")
     @Operation(summary = "Search")
-    @Transactional
     public Response search(
             @Parameter(description = "Query de busca por nome ou origem") @QueryParam("q") String q,
             @Parameter(description = "Campo de ordenação") @QueryParam("sort") @DefaultValue("id") String sort,
