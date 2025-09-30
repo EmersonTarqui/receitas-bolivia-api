@@ -48,7 +48,6 @@ public class ReceitaResource {
                     schema = @Schema(implementation = Receita.class, type = SchemaType.ARRAY)
             )
     )
-    @Transactional
     public Response getAll() {
         return Response.ok(repList(Receita.listAll())).build();
     }
@@ -56,7 +55,6 @@ public class ReceitaResource {
     @GET
     @Path("/{id}")
     @Operation(summary = "getById (Busca uma receita por ID)")
-    @Transactional
     public Response getById(
             @Parameter(description = "Id da receita a ser pesquisada", required = true)
             @PathParam("id") long id) {
