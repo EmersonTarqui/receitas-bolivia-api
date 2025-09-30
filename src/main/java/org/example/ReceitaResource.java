@@ -164,6 +164,7 @@ public class ReceitaResource {
             @Parameter(description = "Id da receita a ser atualizada", required = true)
                                    @PathParam("id") long id,
                                @RequestBody(
+                                       description = "Para atualizar uma receita, é necessário que a Categoria e os Ingredientes já existam. Envie os IDs correspondentes.",
                                        required = true,
                                        content = @Content(
                                                mediaType = "application/json",
