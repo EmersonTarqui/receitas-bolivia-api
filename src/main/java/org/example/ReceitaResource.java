@@ -120,7 +120,7 @@ public class ReceitaResource {
                                     "], " +
                                     "\"informacaoNutricional\": {\"calorias\": 800, \"porcaoDescricao\": \"por prato\", \"carboidratos\": 50.0}, " +
                                     "\"categoria\": {\"id\": 1}, " +
-                                    "\"ingredientes\": [{\"id\": 1}, {\"id\": 1}]}"
+                                    "\"ingredientes\": [{\"id\": 1}, {\"id\": 2}]}"
                     )
             )
     )
