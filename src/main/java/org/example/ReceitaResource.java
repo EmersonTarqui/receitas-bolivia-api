@@ -2,11 +2,16 @@ package org.example;
 
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.panache.common.Sort;
+
+import io.smallrye.faulttolerance.api.RateLimit;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import org.eclipse.microprofile.faulttolerance.Fallback;
+import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -15,7 +20,9 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.resteasy.reactive.ResponseStatus;
 
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -48,6 +55,9 @@ public class ReceitaResource {
                     schema = @Schema(implementation = Receita.class, type = SchemaType.ARRAY)
             )
     )
+
+    @RateLimit(value=10, window=1, windowUnit = ChronoUnit.MINUTES)
+    @Fallback(fallbackMethod="fallbackParaListaDeReceitas")
     public Response getAll() {
         return Response.ok(repList(Receita.listAll())).build();
     }
@@ -55,10 +65,18 @@ public class ReceitaResource {
     @GET
     @Path("/{id}")
     @Operation(summary = "getById (Busca uma receita por ID)")
+    @Retry(maxRetries = 3)
+    @Fallback(fallbackMethod = "fallbackParaGetById")
     public Response getById(
             @Parameter(description = "Id da receita a ser pesquisada", required = true)
             @PathParam("id") long id) {
         Receita entity = Receita.findById(id);
+
+        //teste FallBack, id=999 vai retornar erro de servico indisponivel
+        if (id == 999) {
+            throw new RuntimeException("Erro para testar fallback");
+        }
+
         if (entity == null) {
             return Response.status(404).build();
         }
@@ -68,6 +86,8 @@ public class ReceitaResource {
     @GET
     @Path("/search")
     @Operation(summary = "Search")
+    @RateLimit(value = 5, window = 1 , windowUnit = ChronoUnit.MINUTES)
+    @Fallback(fallbackMethod = "fallbackParaBuscaDeReceitas")
     public Response search(
             @Parameter(description = "Query de busca por nome ou origem") @QueryParam("q") String q,
             @Parameter(description = "Campo de ordenação") @QueryParam("sort") @DefaultValue("id") String sort,
@@ -198,6 +218,29 @@ public class ReceitaResource {
         entity.ingredientes = newReceita.ingredientes;
 
         return Response.status(200).entity(rep(entity)).build();
+    }
+
+    //metodos Fallback
+
+    public Response fallbackParaListaDeReceitas() {
+        return Response.status(Response.Status.TOO_MANY_REQUESTS)
+                .entity("Taxa de requisições excedida. Tente novamente mais tarde.")
+                .type(MediaType.TEXT_PLAIN_TYPE)
+                .build();
+    }
+
+    public Response fallbackParaGetById(long id) {
+        return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                .entity("Serviço indisponível para a receita " + id + " Tente novamente mais tarde." )
+                .type(MediaType.TEXT_PLAIN_TYPE)
+                .build();
+    }
+
+    public Response fallbackParaBuscaDeReceitas(String q, String sort, String direction, int page, int size) {
+        return Response.status(Response.Status.TOO_MANY_REQUESTS)
+                .entity("Taxa de requisições excedida. Tente novamente mais tarde.")
+                .type(MediaType.TEXT_PLAIN_TYPE)
+                .build();
     }
 }
 
