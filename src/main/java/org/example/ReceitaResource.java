@@ -12,6 +12,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import org.eclipse.microprofile.faulttolerance.Fallback;
 import org.eclipse.microprofile.faulttolerance.Retry;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -58,6 +59,7 @@ public class ReceitaResource {
 
     @RateLimit(value=10, window=1, windowUnit = ChronoUnit.MINUTES)
     @Fallback(fallbackMethod="fallbackParaListaDeReceitas")
+    @Timeout(value = 5 , unit = ChronoUnit.SECONDS)
     public Response getAll() {
         return Response.ok(repList(Receita.listAll())).build();
     }
@@ -67,6 +69,7 @@ public class ReceitaResource {
     @Operation(summary = "getById (Busca uma receita por ID)")
     @Retry(maxRetries = 3)
     @Fallback(fallbackMethod = "fallbackParaGetById")
+    @Timeout(value = 2500 , unit = ChronoUnit.MILLIS)
     public Response getById(
             @Parameter(description = "Id da receita a ser pesquisada", required = true)
             @PathParam("id") long id) {
@@ -87,6 +90,7 @@ public class ReceitaResource {
     @Path("/search")
     @Operation(summary = "Search")
     @RateLimit(value = 5, window = 1 , windowUnit = ChronoUnit.MINUTES)
+    @Timeout(value=4, unit = ChronoUnit.SECONDS)
     @Fallback(fallbackMethod = "fallbackParaBuscaDeReceitas")
     public Response search(
             @Parameter(description = "Query de busca por nome ou origem") @QueryParam("q") String q,
@@ -157,6 +161,8 @@ public class ReceitaResource {
                     mediaType = "text/plain",
                     schema = @Schema(implementation = String.class))
     )
+    @Timeout(value = 3, unit = ChronoUnit.SECONDS)
+    @Fallback(fallbackMethod = "FallbackParaInsert")
     public Response insert(Receita receita) {
         Receita.persist(receita);
         return Response.status(201).entity(rep(receita)).build();
@@ -166,6 +172,8 @@ public class ReceitaResource {
     @Transactional
     @Path("/{id}")
     @Operation(summary = "Delete (Deleta uma receita)")
+    @Timeout(value = 2 , unit = ChronoUnit.SECONDS)
+    @Fallback(fallbackMethod = "fallbackParaDelete")
     public Response delete(@PathParam("id") long id) {
         Receita entity = Receita.findById(id);
         if (entity == null) {
@@ -180,6 +188,7 @@ public class ReceitaResource {
     @Path("/{id}")
     @Operation(summary = "Update (Atualiza uma receita)",
             description = "Atualiza uma receita  existente.")
+    @Timeout(value = 3500, unit = ChronoUnit.MILLIS)
     public Response update(
             @Parameter(description = "Id da receita a ser atualizada", required = true)
                                    @PathParam("id") long id,
@@ -231,7 +240,7 @@ public class ReceitaResource {
 
     public Response fallbackParaGetById(long id) {
         return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                .entity("Serviço indisponível para a receita " + id + " Tente novamente mais tarde." )
+                .entity("Serviço indisponível para a receita " + id + ". Tente novamente mais tarde." )
                 .type(MediaType.TEXT_PLAIN_TYPE)
                 .build();
     }
@@ -239,6 +248,20 @@ public class ReceitaResource {
     public Response fallbackParaBuscaDeReceitas(String q, String sort, String direction, int page, int size) {
         return Response.status(Response.Status.TOO_MANY_REQUESTS)
                 .entity("Taxa de requisições excedida. Tente novamente mais tarde.")
+                .type(MediaType.TEXT_PLAIN_TYPE)
+                .build();
+    }
+
+    public Response fallbackParaDelete(long id) {
+        return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                .entity("Servico indisponivel. Tente Novamente mais tarde.")
+                .type(MediaType.TEXT_PLAIN_TYPE)
+                .build();
+    }
+
+    public Response FallbackParaInsert(Receita receita){
+        return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                .entity("Servico indisponivel. Tente Novamente mais tarde.")
                 .type(MediaType.TEXT_PLAIN_TYPE)
                 .build();
     }
