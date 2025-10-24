@@ -14,6 +14,7 @@ import org.eclipse.microprofile.faulttolerance.Fallback;
 import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.faulttolerance.Timeout;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.ParameterIn;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -29,6 +30,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Path("/receitas")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Receitas", description = "Operações relacionadas a receitas")
 public class ReceitaResource {
 
@@ -121,6 +124,7 @@ public class ReceitaResource {
     }
 
     @POST
+    @Idempotent(expireAfter = 7200)
     @Transactional
     @Operation(summary = "Insert (Cria uma nova receita)")
     @RequestBody(
@@ -161,8 +165,15 @@ public class ReceitaResource {
                     mediaType = "text/plain",
                     schema = @Schema(implementation = String.class))
     )
-    @Timeout(value = 3, unit = ChronoUnit.SECONDS)
-    @Fallback(fallbackMethod = "FallbackParaInsert")
+
+    @Parameter(
+            name = "X-Idempotency-Key", // Este é o nome padrão que o @Idempotent do SmallRye espera
+            description = "Chave de idempotência (ex: UUIDv7) para garantir que a requisição seja processada apenas uma vez.",
+            in = ParameterIn.HEADER,
+            required = true, // A lógica @Idempotent exige, então 'true' é o correto
+            schema = @Schema(type = SchemaType.STRING, example = "018f45b6-7b3c-7c0b-8f3b-5c4a00000000") // Exemplo de UUIDv7
+    )
+
     public Response insert(Receita receita) {
         Receita.persist(receita);
         return Response.status(201).entity(rep(receita)).build();
@@ -172,8 +183,6 @@ public class ReceitaResource {
     @Transactional
     @Path("/{id}")
     @Operation(summary = "Delete (Deleta uma receita)")
-    @Timeout(value = 2 , unit = ChronoUnit.SECONDS)
-    @Fallback(fallbackMethod = "fallbackParaDelete")
     public Response delete(@PathParam("id") long id) {
         Receita entity = Receita.findById(id);
         if (entity == null) {
@@ -252,18 +261,5 @@ public class ReceitaResource {
                 .build();
     }
 
-    public Response fallbackParaDelete(long id) {
-        return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                .entity("Servico indisponivel. Tente Novamente mais tarde.")
-                .type(MediaType.TEXT_PLAIN_TYPE)
-                .build();
-    }
-
-    public Response FallbackParaInsert(Receita receita){
-        return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                .entity("Servico indisponivel. Tente Novamente mais tarde.")
-                .type(MediaType.TEXT_PLAIN_TYPE)
-                .build();
-    }
 }
 

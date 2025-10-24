@@ -5,6 +5,12 @@
 -- insert into myentity (id, field) values(3, 'field-3');
 -- alter sequence myentity_seq restart with 4;
 
+-- PASSO 1: Criar as "máquinas de senhas" (Sequências) para cada tabela
+CREATE SEQUENCE Categoria_SEQ START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE Ingrediente_SEQ START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE InformacaoNutricional_SEQ START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE Receita_SEQ START WITH 1 INCREMENT BY 1;
+
 
 -- Categorias
 INSERT INTO Categoria (id, nome) VALUES (1, 'Sopas');

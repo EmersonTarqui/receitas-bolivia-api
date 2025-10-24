@@ -5,6 +5,7 @@ import io.quarkus.panache.common.Sort;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -21,6 +22,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Path("/ingredientes")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Ingredientes", description = "Operações relacionadas a ingredientes")
 public class IngredienteResource {
 
