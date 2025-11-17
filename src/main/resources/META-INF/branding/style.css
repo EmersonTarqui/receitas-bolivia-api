@@ -1,0 +1,28 @@
+html{
+    box-sizing: border-box;
+    overflow: -moz-scrollbars-vertical;
+    overflow-y: scroll;
+}
+
+:root {
+    --cor-fundo: #FFFAE0;
+    --cor-vermelho-bolivia: #DA291C;
+    --cor-amarelo-bolivia: #F7E300;
+    --cor-verde-bolivia: #007A33;
+}
+
+body {
+    background-color: var(--cor-fundo);
+    margin: 0;
+}
+
+
+.swagger-ui .topbar {
+    background-image: linear-gradient(to left,
+    var(--cor-vermelho-bolivia),
+    var(--cor-amarelo-bolivia),
+    var(--cor-verde-bolivia));
+    padding: 12px 0;
+}
+
+
