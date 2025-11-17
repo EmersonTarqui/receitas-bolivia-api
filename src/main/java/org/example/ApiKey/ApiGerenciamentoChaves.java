@@ -10,9 +10,11 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.UUID;
 
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.example.ApiKey.ApiKey;
 
 @Path("/v1/gerar-chave")
+@Tag(name = "Chaves", description = "Gerenciamento de autenticação")
 @Produces(MediaType.APPLICATION_JSON)
 @ApplicationScoped
 public class ApiGerenciamentoChaves {
