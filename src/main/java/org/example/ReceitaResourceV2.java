@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@Path("/api/v2/receitas")
+@Path("/v2/receitas")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "ReceitasV2", description = "Operações relacionadas a receitas (V2)")
